@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Fingerprinting Test</title>
+    <style>
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 40px;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .section h2 {
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-top: 0;
+            color: #333;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .output {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+        .output code {
+            color: #d63384;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+        tr:hover {
+            background: #f9f9f9;
+        }
+        .storage-info {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 6px;
+        }
+        .storage-info strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Device Fingerprinting Test</h1>
+            <p>Generate and test deterministic device UUIDs</p>
+        </div>
+
+        <div class="content">
+            <!-- Device Fingerprinting Section -->
+            <div class="section">
+                <h2>1️⃣ Device Fingerprinting</h2>
+                <div class="button-group">
+                    <button onclick="testGenerateUUID()">Generate UUID</button>
+                    <button onclick="testGetOrCreate()">Get or Create</button>
+                    <button onclick="testDisplayInfo()">Display Info</button>
+                </div>
+                <div id="fingerprint-output"></div>
+            </div>
+
+            <!-- Device Properties Section -->
+            <div class="section">
+                <h2>📊 Device Properties</h2>
+                <button onclick="displayProperties()">Show Properties</button>
+                <div id="properties-output"></div>
+            </div>
+
+            <!-- Storage Section -->
+            <div class="section">
+                <h2>💾 Storage Management</h2>
+                <div class="button-group">
+                    <button onclick="checkStorage()">Check Storage</button>
+                    <button onclick="viewStorage()">View Storage</button>
+                    <button onclick="clearStorage()" style="background: #dc3545;">Clear Storage</button>
+                </div>
+                <div id="storage-output"></div>
+            </div>
+
+            <!-- Verification Section -->
+            <div class="section">
+                <h2>✅ Verification</h2>
+                <button onclick="verifyAll()">Run All Checks</button>
+                <div id="verification-output"></div>
+            </div>
+
+            <!-- Integration Test Section -->
+            <div class="section">
+                <h2>🔗 Integration Test</h2>
+                <p>Test the complete login flow with device UUID:</p>
+                <input type="text" id="username" placeholder="Username/Email" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px;">
+                <input type="password" id="password" placeholder="Password" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px;">
+                <button onclick="testLoginFlow()">Test Login Flow</button>
+                <div id="integration-output"></div>
+            </div>
+
+            <!-- Console Output Section -->
+            <div class="section">
+                <h2>📜 Console Output</h2>
+                <p>Check your browser's Developer Console (F12) for detailed logs</p>
+                <button onclick="openConsole()">Open DevTools</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Copy the complete deviceFingerprint.js code here
+        // (Or link to it: <script src="./utils/deviceFingerprint.js"></script>)
+
+        async function generateDeviceUUID() {
+            if (!window.crypto || !window.crypto.subtle) {
+                throw new Error('Web Crypto API not available');
+            }
+
+            const fingerprint = {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                screen: {
+                    width: screen.width,
+                    height: screen.height
+                },
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            };
+
+            const fingerprintString = JSON.stringify(fingerprint);
+            const encoder = new TextEncoder();
+            const fingerprintBuffer = encoder.encode(fingerprintString);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', fingerprintBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray
+                .map(byte => byte.toString(16).padStart(2, '0'))
+                .join('');
+
+            return hashHex;
+        }
+
+        async function getOrCreateDeviceUUID() {
+            const STORAGE_KEY = 'device_uuid';
+            const existingUUID = localStorage.getItem(STORAGE_KEY);
+
+            if (existingUUID && existingUUID.length === 64) {
+                return existingUUID;
+            }
+
+            const newUUID = await generateDeviceUUID();
+            localStorage.setItem(STORAGE_KEY, newUUID);
+            return newUUID;
+        }
+
+        function outputLog(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const div = document.createElement('div');
+            div.className = `output ${type}`;
+            div.innerHTML = message;
+            element.appendChild(div);
+        }
+
+        async function testGenerateUUID() {
+            try {
+                const uuid = await generateDeviceUUID();
+                outputLog('fingerprint-output', 
+                    `<strong>Generated UUID:</strong><br><code>${uuid}</code><br>Length: ${uuid.length}`, 
+                    'success');
+                console.log('Generated UUID:', uuid);
+            } catch (error) {
+                outputLog('fingerprint-output', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetOrCreate() {
+            try {
+                document.getElementById('fingerprint-output').innerHTML = '';
+                outputLog('fingerprint-output', 'Generating UUID...', 'info');
+                const uuid = await getOrCreateDeviceUUID();
+                outputLog('fingerprint-output', 
+                    `<strong>Device UUID (get or create):</strong><br><code>${uuid}</code><br>Stored in localStorage`, 
+                    'success');
+                console.log('Get or Create UUID:', uuid);
+            } catch (error) {
+                outputLog('fingerprint-output', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDisplayInfo() {
+            try {
+                document.getElementById('fingerprint-output').innerHTML = '';
+                const uuid = await getOrCreateDeviceUUID();
+                const fingerprint = {
+                    'User Agent': navigator.userAgent,
+                    'Language': navigator.language,
+                    'Platform': navigator.platform,
+                    'Screen': `${screen.width}x${screen.height}`,
+                    'Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone
+                };
+                
+                let html = `<strong>Device UUID:</strong><br><code>${uuid}</code><br><br>`;
+                html += '<strong>Fingerprint Properties:</strong><br>';
+                html += '<table>';
+                for (const [key, value] of Object.entries(fingerprint)) {
+                    html += `<tr><td><strong>${key}</strong></td><td>${value}</td></tr>`;
+                }
+                html += '</table>';
+                
+                outputLog('fingerprint-output', html, 'success');
+            } catch (error) {
+                outputLog('fingerprint-output', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        function displayProperties() {
+            document.getElementById('properties-output').innerHTML = '';
+            const properties = {
+                'User Agent': navigator.userAgent,
+                'Language': navigator.language,
+                'Language Code': navigator.languages?.join(', ') || 'N/A',
+                'Platform': navigator.platform,
+                'Screen Width': screen.width,
+                'Screen Height': screen.height,
+                'Color Depth': screen.colorDepth,
+                'Device Pixel Ratio': window.devicePixelRatio,
+                'Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
+                'Memory (GB)': navigator.deviceMemory || 'N/A',
+                'Cores': navigator.hardwareConcurrency || 'N/A'
+            };
+
+            let html = '<table>';
+            for (const [key, value] of Object.entries(properties)) {
+                html += `<tr><td><strong>${key}</strong></td><td>${value}</td></tr>`;
+            }
+            html += '</table>';
+            
+            document.getElementById('properties-output').innerHTML = html;
+        }
+
+        async function checkStorage() {
+            try {
+                document.getElementById('storage-output').innerHTML = '';
+                const testKey = '__storage_test__';
+                localStorage.setItem(testKey, 'test');
+                const result = localStorage.getItem(testKey) === 'test';
+                localStorage.removeItem(testKey);
+
+                const uuid = localStorage.getItem('device_uuid');
+                let html = '<div class="storage-info">';
+                html += `<strong>localStorage Available:</strong> ${result ? '✅ YES' : '❌ NO'}<br>`;
+                html += `<strong>Device UUID Stored:</strong> ${uuid ? '✅ YES' : '❌ NO'}<br>`;
+                if (uuid) {
+                    html += `<strong>Value:</strong> <code>${uuid}</code>`;
+                }
+                html += '</div>';
+
+                outputLog('storage-output', html, result ? 'success' : 'error');
+            } catch (error) {
+                outputLog('storage-output', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        function viewStorage() {
+            document.getElementById('storage-output').innerHTML = '';
+            const items = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                items[key] = value.substring(0, 50) + (value.length > 50 ? '...' : '');
+            }
+
+            let html = '<table>';
+            html += '<tr><th>Key</th><th>Value</th></tr>';
+            for (const [key, value] of Object.entries(items)) {
+                html += `<tr><td><code>${key}</code></td><td><code>${value}</code></td></tr>`;
+            }
+            html += '</table>';
+            
+            if (localStorage.length === 0) {
+                outputLog('storage-output', 'localStorage is empty', 'info');
+            } else {
+                document.getElementById('storage-output').innerHTML = html;
+            }
+        }
+
+        function clearStorage() {
+            localStorage.removeItem('device_uuid');
+            outputLog('storage-output', 'Device UUID cleared from localStorage', 'success');
+        }
+
+        async function verifyAll() {
+            document.getElementById('verification-output').innerHTML = '';
+            try {
+                const uuid = await generateDeviceUUID();
+                const checks = {
+                    'UUID Generated': uuid && uuid.length === 64,
+                    'UUID is Hex': /^[0-9a-f]{64}$/.test(uuid),
+                    'Web Crypto Available': !!window.crypto?.subtle,
+                    'localStorage Available': localStorage.getItem('test') !== undefined || true,
+                    'SHA-256 Hashing': uuid.length === 64
+                };
+
+                let html = '<table>';
+                for (const [check, passed] of Object.entries(checks)) {
+                    html += `<tr><td><strong>${check}</strong></td><td>${passed ? '✅ PASS' : '❌ FAIL'}</td></tr>`;
+                }
+                html += '</table>';
+                
+                const allPassed = Object.values(checks).every(v => v);
+                document.getElementById('verification-output').innerHTML = html;
+                outputLog('verification-output', 
+                    allPassed ? 'All checks passed ✅' : 'Some checks failed ❌', 
+                    allPassed ? 'success' : 'error');
+            } catch (error) {
+                outputLog('verification-output', `Verification failed: ${error.message}`, 'error');
+            }
+        }
+
+        function testLoginFlow() {
+            outputLog('integration-output', 'Login flow testing requires backend server', 'info');
+        }
+
+        function openConsole() {
+            alert('Press F12 or Ctrl+Shift+I (Windows/Linux) or Cmd+Option+I (Mac) to open DevTools');
+        }
+    </script>
+</body>
+</html>

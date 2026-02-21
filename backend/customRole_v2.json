@@ -1,0 +1,12 @@
+﻿{
+  "Name": "CustomReaderRole_v2",
+  "IsCustom": true,
+  "Description": "Custom Reader Role with limited access to resource groups",
+  "Actions": [
+    "Microsoft.Resources/subscriptions/resourceGroups/read"
+  ],
+  "NotActions": [],
+  "AssignableScopes": [
+    "/subscriptions/c5d03de4-0c40-4835-9898-6d66838e7ce2"
+  ]
+}

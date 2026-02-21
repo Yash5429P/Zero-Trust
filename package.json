@@ -1,0 +1,24 @@
+{
+  "name": "zero-trust-fullstack",
+  "version": "1.0.0",
+  "description": "Zero Trust Monitoring System - Full Stack Application",
+  "private": true,
+  "scripts": {
+    "install:all": "cd frontend && npm install && cd ../backend && pip install -r requirements.txt",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && uvicorn app:app --reload --port 8000",
+    "build:frontend": "cd frontend && npm run build",
+    "start:frontend": "cd frontend && npm run preview",
+    "lint:frontend": "cd frontend && npm run lint"
+  },
+  "keywords": [
+    "zero-trust",
+    "security",
+    "monitoring",
+    "admin-dashboard",
+    "fastapi",
+    "react"
+  ],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,17 @@
+{
+  "backend_url": "http://localhost:8000",
+  "agent_version": "1.0.0",
+  "heartbeat_interval": 30,
+  "request_timeout": 10,
+  "device_id_storage": ".device_identity.json",
+  "agent_token_storage": ".agent_token.json",
+  "log_level": "INFO",
+  "telemetry_enabled": true,
+  "usb_monitoring_enabled": true,
+  "cpu_telemetry_enabled": true,
+  "memory_telemetry_enabled": true,
+  "disk_telemetry_enabled": true,
+  "network_telemetry_enabled": true,
+  "process_telemetry_enabled": true,
+  "user_telemetry_enabled": true
+}
