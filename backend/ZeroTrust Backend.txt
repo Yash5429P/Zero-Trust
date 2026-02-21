@@ -1,0 +1,659 @@
+1. Project Title
+
+Insider Threat Detection & Zero Trust Monitoring System
+
+2. Project Overview (Simple Explanation)
+
+Write in your words like:
+
+This project is a security monitoring system that tracks user activity inside an organization and detects potential insider threats using Zero Trust security principles. It collects logs, applies rules to find suspicious behaviour, and shows alerts to the admin through a dashboard.
+
+3. Problem This Project Solves
+
+Example:
+
+Employees with system access may misuse data
+
+Traditional security trusts users once authenticated
+
+No monitoring = difficult to detect internal breaches
+
+Zero Trust ensures every action is verified always
+
+4. Why This Project
+
+Write points like:
+
+To learn cybersecurity fundamentals
+
+To implement Zero Trust practically
+
+Useful for SOC & monitoring
+
+Good resume-level project
+
+Can be expanded to real-world use
+
+5. Features
+
+Start simple, we will add more later:
+
+User activity monitoring
+
+Zero Trust policy enforcement
+
+Log storing system
+
+Suspicious behaviour detection
+
+Alert system for admin
+
+Role based access – User/Admin
+
+Later features to add:
+
+Machine learning anomaly detection
+
+Real-time monitoring UI
+
+6. Architecture Overview
+
+Add a simple diagram later like:
+
+Client Agent → Backend API → Database → React Dashboard (Admin/User)
+
+7. Tech Stack Used
+
+Backend → Python, FastAPI
+Frontend → React.js
+Database → SQLite / MySQL
+Agent → Python
+
+Why Python?
+
+Easy for security scripting, fast development, good for log handling, supports ML extension.
+
+8. Current Progress Log (Write daily)
+Date	Work Completed
+Day-1	Installed Python, created project, setup FastAPI
+
+This will become your project timeline.
+
+9. Commands Used
+
+Example:
+
+python -m venv venv
+venv\Scripts\activate
+pip install fastapi uvicorn
+uvicorn app:app --reload
+
+Yes — we successfully created and executed app.py.
+
+Your current backend file app.py is the entry point of the API server, and it's working correctly.
+
+Here is what we have achieved so far:
+
+✔ What is app.py?
+
+app.py is your backend server file.
+It contains:
+
+FastAPI application instance
+
+API routes/endpoints
+
+Will later connect to database, authentication, logging APIs, etc.
+
+Your current working file looks like:
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return {"message": "Insider Threat & Zero Trust API Running Successfully!"}
+
+✔ Why do we need app.py?
+Purpose	Explanation
+API entry point	Uvicorn loads this file and runs the server
+Route handler	We will add endpoints like /login, /collect-log, /logs
+Backend logic	Authentication, policies, alerts will be here
+Communication bridge	Frontend (React) and Agent will request this API
+✔ What did we do using app.py?
+
+You ran:
+
+uvicorn app:app --reload
+
+
+Which means:
+
+uvicorn <filename>:<FastAPI_object>
+
+
+Here:
+
+app.py → file name
+
+app → FastAPI instance inside that file
+
+
+📌 Step-2: Database Setup (Complete Notes)
+What is a Database?
+
+A database is used to store and manage data persistently.
+In this project, we need a place to store:
+
+User accounts (username, password, role)
+
+Activity logs (system actions sent by agent)
+
+Alerts (if suspicious activity detected)
+
+Policies (Zero-Trust rules)
+
+Instead of keeping data in files, a DB allows us to query, update, store and manage securely.
+
+Which Database Are We Using? & Why?
+✔ Database: SQLite
+
+Reasons for choosing SQLite:
+
+Benefit	Why it helps us
+No installation required	Creates a .db file automatically
+Lightweight & fast	Perfect for learning & development
+Works well with Python	Easy integration using SQLAlchemy
+Can upgrade later	Switch to MySQL/PostgreSQL easily
+
+SQLite gives a file-based DB named insider.db in your project folder.
+
+What is SQLAlchemy & Why Use It?
+
+SQLAlchemy is an ORM (Object Relational Mapper) for Python.
+
+In simple words:
+
+It allows us to interact with the database using Python classes instead of writing raw SQL queries.
+
+This makes code cleaner, safer, and easier to manage.
+
+Example:
+
+Without ORM →
+INSERT INTO users (name,password) VALUES ("yash","123")
+
+With ORM →
+new_user = User(name="yash", password="123")
+
+Much simpler & readable.
+
+Files Created in Step-2
+1. database.py – Database Connection Setup
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+# SQLite database (file will be created automatically)
+DATABASE_URL = "sqlite:///./insider.db"
+
+engine = create_engine(
+    DATABASE_URL, connect_args={"check_same_thread": False}
+)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base()
+
+
+Purpose:
+
+Element	Use
+DATABASE_URL	Where DB file will be created
+engine	Connects Python to DB
+SessionLocal	Used to interact with DB each request
+Base	Base class for all models (tables)
+2. models.py – Creating Tables (User Model)
+from sqlalchemy import Column, Integer, String
+from database import Base
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String)
+    role = Column(String, default="user")   # user/admin/superadmin
+
+
+Purpose of User table:
+
+Field	Description
+id	Unique identifier for each user
+username	Login name, must be unique
+password	Hashed password (not plain text)
+role	Access control (Zero-Trust requirement)
+
+Later more fields can be added like email, last login, status etc.
+
+3. Updated app.py – Database Initialization Code
+from fastapi import FastAPI
+from database import Base, engine
+import models   # important to load models
+
+app = FastAPI()
+
+# Auto create tables in DB when server starts
+Base.metadata.create_all(bind=engine)
+
+@app.get("/")
+def home():
+    return {"message": "Insider Threat & Zero Trust API Running Successfully!"}
+
+What happens here?
+
+When you start server:
+
+uvicorn app:app --reload
+
+
+FastAPI loads models → SQLAlchemy maps them → creates DB automatically
+
+✔ insider.db file appears
+✔ users table is now created inside DB
+
+This means DB is ready for authentication, logs & policies.
+
+Folder Structure After Step-2
+Insider-ZeroTrust-Backend/
+│── app.py
+│── database.py
+│── models.py
+│── insider.db          ← database created
+└── venv/
+
+What We Achieved in Step-2
+Task	Status
+Added database connection	✔
+Created User table (models.py)	✔
+Linked DB to FastAPI	✔
+DB file generated successfully	✔
+Common Errors & Solutions (Database Setup)
+1. insider.db file not created
+
+Cause:
+
+models was not imported in app.py
+
+File changes were not saved
+
+Server wasn't restarted after update
+
+Fix:
+
+import models
+Base.metadata.create_all(bind=engine)
+
+
+Then restart server:
+
+uvicorn app:app --reload
+
+2. ImportError: cannot import name 'Base' from 'database'
+
+Cause:
+Typing mistake in database.py or wrong capitalization.
+
+Fix Checklist:
+
+File name must be database.py (lowercase)
+
+Must contain:
+
+Base = declarative_base()
+
+
+Restart server after fixing
+
+3. ModuleNotFoundError: No module named 'database'
+
+Cause:
+Running server from wrong directory.
+
+Fix:
+Open terminal inside backend folder:
+
+cd C:\Users\HP\OneDrive\Desktop\Insider-ZeroTrust-Backend
+uvicorn app:app --reload
+
+4. App reload loop / ASGI warning during save
+
+Cause:
+FastAPI auto reloads whenever file changes.
+Temporary errors appear mid-reload.
+
+Fix:
+Ignore if it resolves automatically and shows:
+
+Application startup complete.
+
+5. sqlalchemy not installed error
+
+Cause: Forgot to install dependencies.
+
+Fix:
+
+pip install sqlalchemy pydantic
+
+6. Wrong import spelling (very common)
+
+Examples:
+
+❌ from fastapi import FastAP
+❌ from fastapi import fastapi
+❌ from database import base
+
+Correct spellings:
+
+from fastapi import FastAPI
+from database import Base, engine
+
+7. Virtual environment not activated
+
+Symptoms:
+
+pip install not installing in project env
+
+Libraries "not found" even after install
+
+Fix:
+
+venv\Scripts\activate    # Windows
+
+
+Verify (venv) appears in terminal before commands.
+
+8. Typo mistakes in DATABASE_URL
+
+Correct format:
+
+DATABASE_URL = "sqlite:///./insider.db"
+
+
+Mistakes to avoid:
+
+❌ missing slashes
+❌ wrong file path
+❌ using backslashes
+
+9. DB created but user table missing
+
+Cause: Model change after DB creation
+
+Fix:
+
+Delete old DB and recreate:
+
+delete insider.db
+uvicorn app:app --reload
+
+
+or later use migrations when project grows.
+
+10. Files modified but not saved before run
+
+Exactly what you faced ✔
+If you edit app.py or models.py but don’t save:
+
+→ DB will not update
+→ Server loads previous version
+
+Fix:
+
+Always Ctrl + S before running.
+
+Summary Table
+Error	Reason	Fix
+DB not created	models not imported/saved	Add import models & restart
+Base import error	wrong code in database.py	Check Base=declarative_base()
+No module 'database'	wrong folder when running	CD into backend folder
+Dependencies missing	not installed in venv	pip install packages
+Table missing	DB created before model update	Delete & recreate DB
+Loop reload warnings	Auto-reload event	Ignore if server starts OK
+Wrong spelling	Typo in import	Correct exact names
+
+
+
+📘 STEP-3 — Authentication System (Register + Login + JWT Tokens)
+🔥 Goal of Step-3
+
+Enable users to:
+
+✔ Register account
+✔ Login using username + password
+✔ Get JWT Token for authentication
+✔ Store user securely in DB with hashed password
+
+This is the foundation of Zero-Trust — nobody is trusted without verification.
+
+🔹 Why Authentication is Needed?
+
+In Zero-Trust model:
+
+No user is trusted automatically. Every request must be verified with identity proof.
+
+Token-based authentication ensures:
+
+Benefit	Why it matters
+Secure login	Password not stored as plain text
+Token required for requests	Prevents unauthorized access
+Works for web & agent	Scalable communication
+Needed for RBAC	Different features for user/admin
+📁 Files Created in Step-3
+File	Purpose
+auth.py	Handles password hashing & JWT token creation
+schemas.py	Input validation for Register/Login
+app.py (updated)	Added /register & /login API endpoints
+1. auth.py (NEW FILE)
+
+Handles:
+
+✔ Password hashing
+✔ Password verification
+✔ Access Token generation
+
+from datetime import datetime, timedelta
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
+SECRET_KEY = "supersecretkeychangeit"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 120
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str):
+    return pwd_context.hash(password)
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+Why we use this file?
+
+Function	Meaning
+hash_password()	encrypts password before storing
+verify_password()	compares entered password with stored hashed password
+create_access_token()	generates JWT token for authentication
+2. schemas.py (NEW FILE)
+
+Validates incoming user data.
+
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    role: str = "user"
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+Why Schemas?
+
+Ensure correct data format
+
+Prevent invalid registration/login payload
+
+Acts like input structure rules
+
+3. Edited app.py (UPDATED)
+
+Added /register + /login routes.
+
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from database import Base, engine, SessionLocal
+import models
+from schemas import UserCreate, UserLogin
+from auth import hash_password, verify_password, create_access_token
+
+app = FastAPI()
+Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@app.post("/register")
+def register(user: UserCreate, db: Session = Depends(get_db)):
+    existing = db.query(models.User).filter(models.User.username == user.username).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="User already exists")
+
+    hashed_pw = hash_password(user.password)
+    new_user = models.User(username=user.username, password=hashed_pw, role=user.role)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"message": "User created successfully", "user": new_user.username}
+
+@app.post("/login")
+def login(credentials: UserLogin, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == credentials.username).first()
+    if not user or not verify_password(credentials.password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    token = create_access_token({"sub": user.username})
+    return {"access_token": token, "token_type": "bearer", "role": user.role}
+
+🧠 What happens in Step-3?
+
+User sends /register request → data validated → password hashed → user saved
+
+User sends /login request → password verified → token returned
+
+Token acts as identity proof for future requests
+
+No token → No access (Zero Trust principle)
+
+📘 STEP-4 — Protected Routes & Role-Based Access (RBAC)
+🔥 Goal of Step-4
+
+✔ Allow only logged-in users to access protected APIs
+✔ Restrict admin-only endpoints
+✔ Verify JWT token before granting access
+
+📁 Files Created in Step-4
+File	Purpose
+dependencies.py	Token validation + user verification
+app.py updated	Added protected /profile & admin /admin/dashboard
+1. dependencies.py (NEW FILE)
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
+from auth import SECRET_KEY, ALGORITHM
+from database import SessionLocal
+from sqlalchemy.orm import Session
+import models
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        user = db.query(models.User).filter(models.User.username == username).first()
+        if user is None:
+            raise HTTPException(status_code=401, detail="Invalid user")
+        return user
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+def admin_required(current_user: models.User = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+
+Why this file?
+
+Function	Purpose
+get_current_user()	validates token & identifies user
+admin_required()	only admin allowed to access API
+2. Edited app.py — added protected APIs
+from dependencies import get_current_user, admin_required
+
+@app.get("/profile")
+def profile(current_user = Depends(get_current_user)):
+    return {"message": "Welcome!", "user": current_user.username, "role": current_user.role}
+
+@app.get("/admin/dashboard")
+def admin_dashboard(current_user = Depends(admin_required)):
+    return {"message": "Admin Panel Access Granted", "user": current_user.username}
+
+🧠 What happens in Step-4?
+
+User logs in → receives JWT token
+
+Token is sent in header on protected API calls:
+
+Authorization: Bearer <token>
+
+
+get_current_user() checks validity
+
+If valid → access granted
+
+admin_required() checks role = admin
+→ only admin can open /admin/dashboard
+
+🎉 Result After Step-3 & Step-4
+Feature	Status
+User Register	✔ Working
+User Login	✔ Working
+JWT Token Auth	✔ Working
+Protected Endpoints	✔ Working
+Admin-Only Route	✔ Working
+Zero-Trust Authentication Base	✔ Completed
+
+
