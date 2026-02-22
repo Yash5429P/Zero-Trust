@@ -8,6 +8,8 @@ export default function Dashboard() {
     const [logs, setLogs] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [uploadMessage, setUploadMessage] = useState({ text: "", type: "" });
+    const [agentInfo, setAgentInfo] = useState(null);
+    const [downloadingAgent, setDownloadingAgent] = useState(false);
     const navigate = useNavigate();
 
     const role = localStorage.getItem("role");
@@ -78,12 +80,79 @@ export default function Dashboard() {
         }
     }
 
+    // ========== FETCH AGENT INFO ==========
+    async function loadAgentInfo() {
+        const token = getAccessToken();
+
+        try {
+            const res = await fetch("http://127.0.0.1:8000/agent/info", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setAgentInfo(data);
+            }
+        } catch (err) {
+            console.error("Error loading agent info:", err);
+        }
+    }
+
+    // ========== DOWNLOAD AGENT ==========
+    async function handleDownloadAgent() {
+        setDownloadingAgent(true);
+        const token = getAccessToken();
+
+        try {
+            const res = await fetch("http://127.0.0.1:8000/agent/download", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (!res.ok) {
+                const error = await res.json();
+                setUploadMessage({ 
+                    text: `❌ Download failed: ${error.detail || "Unknown error"}`, 
+                    type: "error" 
+                });
+                setDownloadingAgent(false);
+                return;
+            }
+
+            // Create blob and download
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "zero-trust-agent.exe";
+            document.body.appendChild(link);
+            link.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(link);
+
+            setUploadMessage({ 
+                text: "✅ Agent downloaded successfully!", 
+                type: "success" 
+            });
+            setTimeout(() => setUploadMessage({ text: "", type: "" }), 3000);
+        } catch (err) {
+            console.error("Download error:", err);
+            setUploadMessage({ 
+                text: `❌ Download failed: ${err.message}`, 
+                type: "error" 
+            });
+        } finally {
+            setDownloadingAgent(false);
+        }
+    }
+
+
     // ========== Auto Load Profile & Logs ==========
     useEffect(() => {
         const token = getAccessToken();
         if (!token) return navigate("/");
 
         loadProfile();
+        loadAgentInfo();
         if (role === "admin") loadLogs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -242,6 +311,86 @@ export default function Dashboard() {
                     boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
                 }}>
                     <p style={{ color: "#666", fontSize: 14 }}>⏳ Loading user information...</p>
+                </div>
+            )}
+
+            {/* AGENT DOWNLOAD SECTION */}
+            {agentInfo && (
+                <div style={{
+                    backgroundColor: "white",
+                    borderRadius: "12px",
+                    padding: "24px",
+                    marginBottom: 30,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    border: "1px solid #e0e0e0"
+                }}>
+                    <h2 style={{ margin: "0 0 20px 0", color: "#1a1a1a", fontSize: 18, fontWeight: 600 }}>
+                        🤖 Zero Trust Agent
+                    </h2>
+                    <p style={{ margin: "0 0 20px 0", color: "#666", fontSize: 14, lineHeight: 1.5 }}>
+                        Download and install the Zero Trust Agent on your device to enable real-time monitoring, 
+                        USB device tracking, and geolocation detection.
+                    </p>
+
+                    {/* Agent Features */}
+                    <div style={{ marginBottom: 20 }}>
+                        <h3 style={{ margin: "0 0 12px 0", color: "#1a1a1a", fontSize: 14, fontWeight: 600 }}>Features:</h3>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                            {agentInfo.features?.map((feature, idx) => (
+                                <div key={idx} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                                    <span style={{ color: "#28a745", fontSize: 18, flexShrink: 0 }}>✓</span>
+                                    <span style={{ color: "#666", fontSize: 13 }}>{feature}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Installation Steps */}
+                    <div style={{ 
+                        backgroundColor: "#f8f9fa",
+                        borderRadius: "8px",
+                        padding: "16px",
+                        marginBottom: 20,
+                        border: "1px solid #e0e0e0"
+                    }}>
+                        <h3 style={{ margin: "0 0 12px 0", color: "#1a1a1a", fontSize: 14, fontWeight: 600 }}>
+                            Installation Steps:
+                        </h3>
+                        <ol style={{ margin: 0, paddingLeft: 20, color: "#666" }}>
+                            {agentInfo.installation_steps?.map((step, idx) => (
+                                <li key={idx} style={{ marginBottom: 8, fontSize: 13, lineHeight: 1.5 }}>
+                                    {step}
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+
+                    {/* Download Button */}
+                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                        <button
+                            onClick={handleDownloadAgent}
+                            disabled={downloadingAgent}
+                            style={{
+                                padding: "12px 24px",
+                                backgroundColor: downloadingAgent ? "#ccc" : "#28a745",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: downloadingAgent ? "not-allowed" : "pointer",
+                                fontSize: "14px",
+                                fontWeight: 600,
+                                transition: "background-color 0.2s",
+                                opacity: downloadingAgent ? 0.6 : 1
+                            }}
+                            onMouseEnter={(e) => !downloadingAgent && (e.target.style.backgroundColor = "#218838")}
+                            onMouseLeave={(e) => !downloadingAgent && (e.target.style.backgroundColor = "#28a745")}
+                        >
+                            {downloadingAgent ? "⏳ Downloading..." : "📥 Download Agent (v" + agentInfo.version + ")"}
+                        </button>
+                        <span style={{ color: "#999", fontSize: 12 }}>
+                            {agentInfo.agent_name} • {agentInfo.description}
+                        </span>
+                    </div>
                 </div>
             )}
 
